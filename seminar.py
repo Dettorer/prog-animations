@@ -106,7 +106,7 @@ class SquareOfPred(m.Scene):
         self.wait()
         context.append(def_instance['pred'])
         self.play(
-            m.Transform(context[-1], m.TextMobject(f"pred\_x = {val-1}", color=m.GRAY).next_to(context[-2], m.DOWN, aligned_edge=m.LEFT)),
+            m.Transform(context[-1], m.TextMobject(f"pred\\_x = {val-1}", color=m.GRAY).next_to(context[-2], m.DOWN, aligned_edge=m.LEFT)),
             m.ApplyMethod(def_instance['res'].move_to, def_instance),
         )
 
