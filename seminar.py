@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring
 import manim as m
 
 m.Rectangle.CONFIG["stroke_width"] = 2
@@ -6,11 +7,12 @@ m.Line.CONFIG["stroke_width"] = 2
 INDENT = m.RIGHT
 
 
-def get_square_of_pred(x="x", pred_val="x-1", res="pred_x * pred_x"):
-    fn_def = m.TextMobject(f"\\verb|let square_of_pred {x} =|")
+def get_square_of_pred(arg="x", pred_val="x-1", res="pred_x * pred_x"):
+    """Generate a renderable `square_of_pred` OCaml function"""
+    fn_def = m.TextMobject(f"\\verb|let square_of_pred {arg} =|")
 
     pred_def = (
-        m.TextMobject(f"\\verb|let pred_x =|")
+        m.TextMobject("\\verb|let pred_x =|")
         .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
         .shift(INDENT)
     )
@@ -28,9 +30,20 @@ def get_square_of_pred(x="x", pred_val="x-1", res="pred_x * pred_x"):
 
 
 class SquareOfPred(m.Scene):
+    """An animation to illustrate the evaluation of a simple OCaml function
+
+    The function:
+    ```ocaml
+    let square_of_pred x =
+        let pred_x = x-1 in
+        pred_x * pred_x
+    ```
+    """
+
     def_box = None
 
     def construct_def_box(self):
+        """Show the creation of the OCaml definiton, with a box"""
         # Create the function definition and its rectangular box
         self.def_box = m.VDict(("function", get_square_of_pred()))
         self.def_box.add(
