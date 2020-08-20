@@ -7,7 +7,9 @@ m.Line.CONFIG["stroke_width"] = 2
 INDENT = m.RIGHT
 
 
-def get_square_of_pred(arg="x", pred_val="x-1", res="pred_x * pred_x"):
+def get_square_of_pred(
+    arg: str = "x", pred_val: str = "x-1", res: str = "pred_x * pred_x"
+) -> m.VDict:
     """Generate a renderable `square_of_pred` OCaml function"""
     fn_def = m.TextMobject(f"\\verb|let square_of_pred {arg} =|")
 
@@ -42,7 +44,7 @@ class SquareOfPred(m.Scene):
 
     def_box = None
 
-    def construct_def_box(self):
+    def construct_def_box(self) -> None:
         """Show the creation of the OCaml definiton, with a box"""
         # Create the function definition and its rectangular box
         self.def_box = m.VDict(("function", get_square_of_pred()))
@@ -59,7 +61,7 @@ class SquareOfPred(m.Scene):
         self.def_box.target.scale(0.5).to_corner(m.UL)
         self.play(m.MoveToTarget(self.def_box))
 
-    def construct_call(self, val):
+    def construct_call(self, val: int) -> None:
         """val: the argument given to square_of_pred"""
 
         call = m.TextMobject(f"\\verb|square_of_pred {val}|")
@@ -172,7 +174,7 @@ class SquareOfPred(m.Scene):
         )
         self.play(m.ApplyMethod(call.move_to, m.ORIGIN))
 
-    def construct(self):
+    def construct(self) -> None:
         self.construct_def_box()
 
         self.construct_call(5)
