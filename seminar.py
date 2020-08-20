@@ -178,16 +178,21 @@ class SquareOfPred(m.Scene):
             def_instance["res"], aligned_edge=m.LEFT
         )
         def_instance["res"]["mul"].generate_target().next_to(op1, m.RIGHT)
-        op2 = op1.copy().next_to(def_instance["res"]["mul"].target, m.RIGHT)
+        op2 = op1.copy().next_to(def_instance["res"]["mul"], m.RIGHT)
         self.play(
-            m.Indicate(def_instance["res"]["op1"]),
-            m.Indicate(def_instance["res"]["op2"]),
-            m.Indicate(context[-1]),
+            m.Indicate(def_instance["res"]["op2"]), m.Indicate(context[-1]),
+        )
+        self.play(m.Transform(def_instance["res"]["op2"], op2),)
+        def_instance["res"]["op2"].generate_target().next_to(
+            def_instance["res"]["mul"].target, m.RIGHT
+        )
+        self.play(
+            m.Indicate(def_instance["res"]["op1"]), m.Indicate(context[-1]),
         )
         self.play(
             m.Transform(def_instance["res"]["op1"], op1),
-            m.Transform(def_instance["res"]["op2"], op2),
             m.MoveToTarget(def_instance["res"]["mul"]),
+            m.MoveToTarget(def_instance["res"]["op2"]),
         )
 
         # Evaluate the result
