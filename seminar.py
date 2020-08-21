@@ -7,6 +7,14 @@ m.Line.CONFIG["stroke_width"] = 2
 INDENT = m.RIGHT
 
 
+def replace_expr(scene: m.Scene, expr: m.Mobject, text: str, **kwargs) -> None:
+    """Play an animation that transforms an expression in an other
+
+    kwargs are given to the new Mobject creation function
+    """
+    scene.play(m.Transform(expr, m.TextMobject(text).move_to(expr, **kwargs)))
+
+
 def get_square_of_pred() -> m.VDict:
     """Generate a renderable `square_of_pred` OCaml function"""
     # first line: `let square_of_pred x =`
@@ -210,14 +218,7 @@ class SquareOfPred(m.Scene):
         self.wait()
 
         # Evaluate pred_x
-        self.play(
-            m.Transform(
-                def_instance["pred"]["def"]["val"],
-                m.TextMobject(f"\\verb|{val-1}|").move_to(
-                    def_instance["pred"]["def"]["val"]
-                ),
-            )
-        )
+        replace_expr(self, def_instance["pred"]["def"]["val"], f"\\verb|{val-1}|")
         self.wait()
         # add pred_x=val-1 to context
         context.add(
@@ -238,13 +239,11 @@ class SquareOfPred(m.Scene):
 
         # Evaluate the result
         self.wait()
-        self.play(
-            m.Transform(
-                def_instance["res"],
-                m.TextMobject(f"\\verb|{(val-1) * (val-1)}|").move_to(
-                    def_instance["res"], aligned_edge=m.LEFT
-                ),
-            )
+        replace_expr(
+            self,
+            def_instance["res"],
+            f"\\verb|{(val-1) * (val-1)}|",
+            aligned_edge=m.LEFT,
         )
 
         # Wrap up
