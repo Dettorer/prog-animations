@@ -62,8 +62,8 @@ class CallContext:
         ).set_color(m.GRAY)
         scene.play(
             m.ApplyMethod(self.entries.shift, m.UP * 0.5),
-            m.ShowCreation(association["name"]),
-            m.ShowCreation(association["eq"]),
+            m.FadeIn(association["name"]),
+            m.FadeIn(association["eq"]),
             m.MoveToTarget(association["val"]),
         )
         self.entries.add(association)
@@ -182,7 +182,7 @@ class SquareOfPred(m.Scene):
             ("val", m.TextMobject(f"\\verb|{val}|")),
         )
         call["val"].next_to(call["name"], m.RIGHT, aligned_edge=m.UP)
-        self.play(m.Write(call))
+        self.play(m.FadeIn(call))
 
         # Shift the call and show instanciated definition of the function
         def_instance = self.def_box["function"].deepcopy().remove("fn")
