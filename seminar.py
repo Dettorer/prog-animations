@@ -7,20 +7,20 @@ m.Line.CONFIG["stroke_width"] = 2
 INDENT = m.RIGHT
 
 
-def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
+def get_square_of_pred() -> m.VDict:
     """Generate a renderable `square_of_pred` OCaml function"""
-    ### first line: `let square_of_pred x =`
-    fn_def = m.TextMobject(f"\\verb|let square_of_pred {arg} =|")
+    # first line: `let square_of_pred x =`
+    fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
 
-    ### second line: `let pred_x = x-1 in`
-    ## let
+    # second line: `let pred_x = x - 1 in`
+    # -> let
     pred_let = (
         m.TextMobject("\\verb|let|")
         .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
         .shift(INDENT)
     )
-    ## pred_x = x-1
-    # pred_x =
+    # -> pred_x = x - 1
+    # ---> pred_x =
     pred_def = m.VDict(
         (
             "name",
@@ -29,15 +29,21 @@ def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
             ),
         )
     )
-    # x-1
-    pred_def.add(
+    # ---> x - 1
+    # -----> x
+    pred_def_val = m.VDict(
+        ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
+    )
+    # -----> - 1
+    pred_def_val.add(
         (
-            "val",
-            m.TextMobject(f"\\verb|{pred_val}|").next_to(
-                pred_def["name"], m.RIGHT, aligned_edge=m.UP
+            "min",
+            m.TextMobject("\\verb|- 1|").next_to(
+                pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
             ),
         )
     )
+    pred_def.add(("val", pred_def_val))
     ## in
     pred_end = m.TextMobject("\\verb|in|").next_to(pred_def, m.RIGHT, aligned_edge=m.UP)
     pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
@@ -200,7 +206,7 @@ class SquareOfPred(m.Scene):
 
         # Replace x by its value
         self.wait()
-        context.replace_occurrence(-1, def_instance["pred"]["def"]["val"], self)
+        context.replace_occurrence(-1, def_instance["pred"]["def"]["val"]["x"], self)
         self.wait()
 
         # Evaluate pred_x
