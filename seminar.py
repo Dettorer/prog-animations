@@ -15,60 +15,6 @@ def replace_expr(scene: m.Scene, expr: m.Mobject, text: str, **kwargs) -> None:
     scene.play(m.Transform(expr, m.TextMobject(text).move_to(expr, **kwargs)))
 
 
-def get_square_of_pred() -> m.VDict:
-    """Generate a renderable `square_of_pred` OCaml function"""
-    # first line: `let square_of_pred x =`
-    fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
-
-    # second line: `let pred_x = x - 1 in`
-    # -> let
-    pred_let = (
-        m.TextMobject("\\verb|let|")
-        .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
-        .shift(INDENT)
-    )
-    # -> pred_x = x - 1
-    # ---> pred_x =
-    pred_def = m.VDict(
-        (
-            "name",
-            m.TextMobject("\\verb|pred_x =|").next_to(
-                pred_let, m.RIGHT, aligned_edge=m.UP
-            ),
-        )
-    )
-    # ---> x - 1
-    # -----> x
-    pred_def_val = m.VDict(
-        ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
-    )
-    # -----> - 1
-    pred_def_val.add(
-        (
-            "min",
-            m.TextMobject("\\verb|- 1|").next_to(
-                pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
-            ),
-        )
-    )
-    pred_def.add(("val", pred_def_val))
-    ## in
-    pred_end = m.TextMobject("\\verb|in|").next_to(pred_def, m.RIGHT, aligned_edge=m.UP)
-    pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
-
-    ### Last line: `pred_x * pred_x`
-    res = m.VDict(
-        (
-            "op1",
-            m.TextMobject("\\verb|pred_x|").next_to(pred, m.DOWN, aligned_edge=m.LEFT),
-        )
-    )
-    res.add(("mul", m.TextMobject("\\verb|*|").next_to(res["op1"], m.RIGHT)))
-    res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
-
-    return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
-
-
 class CallContext:
     """
     A renderable list of name-value associations representing the context of
@@ -139,6 +85,60 @@ class CallContext:
                 occurrence, entry["val"].copy().move_to(occurrence).set_color(m.WHITE)
             )
         )
+
+
+def get_square_of_pred() -> m.VDict:
+    """Generate a renderable `square_of_pred` OCaml function"""
+    # first line: `let square_of_pred x =`
+    fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
+
+    # second line: `let pred_x = x - 1 in`
+    # -> let
+    pred_let = (
+        m.TextMobject("\\verb|let|")
+        .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
+        .shift(INDENT)
+    )
+    # -> pred_x = x - 1
+    # ---> pred_x =
+    pred_def = m.VDict(
+        (
+            "name",
+            m.TextMobject("\\verb|pred_x =|").next_to(
+                pred_let, m.RIGHT, aligned_edge=m.UP
+            ),
+        )
+    )
+    # ---> x - 1
+    # -----> x
+    pred_def_val = m.VDict(
+        ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
+    )
+    # -----> - 1
+    pred_def_val.add(
+        (
+            "min",
+            m.TextMobject("\\verb|- 1|").next_to(
+                pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
+            ),
+        )
+    )
+    pred_def.add(("val", pred_def_val))
+    ## in
+    pred_end = m.TextMobject("\\verb|in|").next_to(pred_def, m.RIGHT, aligned_edge=m.UP)
+    pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
+
+    ### Last line: `pred_x * pred_x`
+    res = m.VDict(
+        (
+            "op1",
+            m.TextMobject("\\verb|pred_x|").next_to(pred, m.DOWN, aligned_edge=m.LEFT),
+        )
+    )
+    res.add(("mul", m.TextMobject("\\verb|*|").next_to(res["op1"], m.RIGHT)))
+    res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
+
+    return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
 
 
 class SquareOfPred(m.Scene):
