@@ -66,10 +66,11 @@ class CallContext:
         association["val"].generate_target().next_to(
             association["eq"], m.RIGHT
         ).set_color(m.GRAY)
+
         scene.play(
             m.ApplyMethod(self.entries.shift, m.UP * 0.5),
-            m.FadeIn(association["name"]),
-            m.FadeIn(association["eq"]),
+            m.FadeInFrom(association["name"], direction=m.DOWN),
+            m.FadeInFrom(association["eq"], direction=m.DOWN),
             m.MoveToTarget(association["val"]),
             *extra_animations,
         )
