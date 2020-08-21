@@ -32,14 +32,13 @@ class CallContext:
         scene.play(m.FadeInFrom(self.entries, direction=m.DOWN))
 
     # pylint: disable=too-many-arguments
-    # pylint: disable=dangerous-default-value
     def add(
         self,
         name: str,
         val_orig: m.Mobject,
         scene: m.Scene,
         highlight: m.Mobject = None,
-        extra_animations: List[m.Animation] = [],
+        extra_animations: List[m.Animation] = None,
     ) -> None:
         """Add an name-value association to the context and return animations
 
@@ -72,7 +71,7 @@ class CallContext:
             m.FadeInFrom(association["name"], direction=m.DOWN),
             m.FadeInFrom(association["eq"], direction=m.DOWN),
             m.MoveToTarget(association["val"]),
-            *extra_animations,
+            *(extra_animations if extra_animations else []),
         )
         self.entries.add(association)
         scene.remove(association)  # The previous line created a copy
