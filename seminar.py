@@ -1,4 +1,6 @@
 # pylint: disable=missing-module-docstring
+from typing import List
+
 import manim as m
 
 m.Rectangle.CONFIG["stroke_width"] = 2
@@ -30,12 +32,15 @@ class CallContext:
         self.entries.generate_target().next_to(origin, m.UP * 2, aligned_edge=m.LEFT)
         scene.play(m.FadeIn(self.entries), m.MoveToTarget(self.entries))
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=dangerous-default-value
     def add(
         self,
         name: str,
         val_orig: m.Mobject,
         scene: m.Scene,
         highlight: m.Mobject = None,
+        extra_animations: List[m.Animation] = [],
     ) -> None:
         """Add an name-value association to the context and return animations
 
@@ -43,6 +48,8 @@ class CallContext:
         val_orig -- a Mobject that is the value part of the association
         highlight -- a Mobject that should be highlighted before other animations are
             played, defaults to val_orig
+        extra_animations -- animations to be played along the others during the last
+            step
 
         This creates a copy of `val_orig` and sets its target to the position of
         the value in the context, the returned animations will make the copy
@@ -65,6 +72,7 @@ class CallContext:
             m.FadeIn(association["name"]),
             m.FadeIn(association["eq"]),
             m.MoveToTarget(association["val"]),
+            *extra_animations,
         )
         self.entries.add(association)
         scene.remove(association)  # The previous line created a copy
@@ -226,10 +234,10 @@ class SquareOfPred(m.Scene):
             def_instance["pred"]["def"]["val"],
             self,
             highlight=def_instance["pred"]["def"],
-        )
-        self.play(
-            m.FadeOut(def_instance["pred"]),
-            m.ApplyMethod(def_instance["res"].next_to, lines[1], m.RIGHT),
+            extra_animations=[
+                m.FadeOut(def_instance["pred"]),
+                m.ApplyMethod(def_instance["res"].next_to, lines[1], m.RIGHT),
+            ],
         )
         self.wait()
 
