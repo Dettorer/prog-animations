@@ -85,9 +85,23 @@ class CallContext:
         highlighting the link between them through animations
         """
         entry = self.entries[index]
-        scene.play(
-            m.Indicate(occurrence), m.Indicate(entry),
+
+        # Highlight what's going to happen with little linked rectangles around
+        # the entry and the occurrence
+        entry_rect = m.Rectangle(color=m.GREEN).surround(entry, stretch=True)
+        occurrence_rect = m.Rectangle(color=m.GREEN).surround(occurrence, stretch=True)
+        link = m.Line(
+            entry_rect.get_corner(m.DOWN),
+            occurrence_rect.get_corner(m.UP),
+            color=m.GREEN,
         )
+        scene.play(
+            m.ShowCreationThenFadeOut(entry_rect),
+            m.ShowCreationThenFadeOut(occurrence_rect),
+            m.ShowCreationThenFadeOut(link),
+        )
+
+        # Actually replace the occurrence
         scene.play(
             m.Transform(
                 occurrence, entry["val"].copy().move_to(occurrence).set_color(m.WHITE)
