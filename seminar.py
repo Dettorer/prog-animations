@@ -25,12 +25,11 @@ class CallContext:
 
     def __init__(self, origin: m.Mobject, scene: m.Scene):
         self.entries = m.Group(
-            m.TextMobject("Contexte~:", color=m.GRAY).move_to(
-                origin, aligned_edge=m.LEFT
+            m.TextMobject("Contexte~:", color=m.GRAY).next_to(
+                origin, m.UP * 2, aligned_edge=m.LEFT
             )
         )
-        self.entries.generate_target().next_to(origin, m.UP * 2, aligned_edge=m.LEFT)
-        scene.play(m.FadeIn(self.entries), m.MoveToTarget(self.entries))
+        scene.play(m.FadeInFrom(self.entries, direction=m.DOWN))
 
     # pylint: disable=too-many-arguments
     # pylint: disable=dangerous-default-value
