@@ -247,9 +247,9 @@ class SquareOfPred(m.Scene):
             "pred\\_x",
             def_instance["pred"]["def"]["val"],
             self,
-            highlight=def_instance["pred"]["def"],
+            highlight=def_instance["pred"],
             extra_animations=[
-                m.FadeOut(def_instance["pred"]),
+                m.FadeOutAndShift(def_instance["pred"], direction=m.UP),
                 m.ApplyMethod(def_instance["res"].next_to, lines[1], m.RIGHT),
             ],
         )
