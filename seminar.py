@@ -9,13 +9,18 @@ INDENT = m.RIGHT
 
 def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
     """Generate a renderable `square_of_pred` OCaml function"""
+    ### first line: `let square_of_pred x =`
     fn_def = m.TextMobject(f"\\verb|let square_of_pred {arg} =|")
 
+    ### second line: `let pred_x = x-1 in`
+    ## let
     pred_let = (
         m.TextMobject("\\verb|let|")
         .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
         .shift(INDENT)
     )
+    ## pred_x = x-1
+    # pred_x =
     pred_def = m.VDict(
         (
             "name",
@@ -24,6 +29,7 @@ def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
             ),
         )
     )
+    # x-1
     pred_def.add(
         (
             "val",
@@ -32,9 +38,11 @@ def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
             ),
         )
     )
+    ## in
     pred_end = m.TextMobject("\\verb|in|").next_to(pred_def, m.RIGHT, aligned_edge=m.UP)
     pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
 
+    ### Last line: `pred_x * pred_x`
     res = m.VDict(
         (
             "op1",
@@ -45,6 +53,78 @@ def get_square_of_pred(arg: str = "x", pred_val: str = "x-1") -> m.VDict:
     res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
 
     return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
+
+
+class CallContext:
+    """
+    A renderable list of name-value associations representing the context of
+    a function call, plus some helper functions that uses the context.
+    """
+
+    def __init__(self, origin: m.Mobject, scene: m.Scene):
+        self.entries = m.Group(
+            m.TextMobject("Contexte~:", color=m.GRAY).move_to(
+                origin, aligned_edge=m.LEFT
+            )
+        )
+        self.entries.generate_target().next_to(origin, m.UP * 2, aligned_edge=m.LEFT)
+        scene.play(m.FadeIn(self.entries), m.MoveToTarget(self.entries))
+
+    def add(
+        self,
+        name: str,
+        val_orig: m.Mobject,
+        scene: m.Scene,
+        highlight: m.Mobject = None,
+    ) -> None:
+        """Add an name-value association to the context and return animations
+
+        name -- the name part of the association
+        val_orig -- a Mobject that is the value part of the association
+        highlight -- a Mobject that should be highlighted before other animations are
+            played, defaults to val_orig
+
+        This creates a copy of `val_orig` and sets its target to the position of
+        the value in the context, the returned animations will make the copy
+        move to this position.
+        """
+        scene.play(m.Indicate(highlight if highlight else val_orig))
+
+        association = m.VDict(
+            ("name", m.TextMobject(name, color=m.GRAY)),
+            ("eq", m.TextMobject("=", color=m.GRAY)),
+            ("val", val_orig.copy()),
+        )
+        association["name"].move_to(self.entries[-1], aligned_edge=m.LEFT)
+        association["eq"].next_to(association["name"], m.RIGHT)
+        association["val"].generate_target().next_to(
+            association["eq"], m.RIGHT
+        ).set_color(m.GRAY)
+        scene.play(
+            m.ApplyMethod(self.entries.shift, m.UP * 0.5),
+            m.ShowCreation(association["name"]),
+            m.ShowCreation(association["eq"]),
+            m.MoveToTarget(association["val"]),
+        )
+        self.entries.add(association)
+        scene.remove(association)  # The previous line created a copy
+
+    def replace_occurrence(
+        self, index: int, occurrence: m.Mobject, scene: m.Scene
+    ) -> None:
+        """
+        Replace an occurrence of a name by the value store in the context,
+        highlighting the link between them through animations
+        """
+        entry = self.entries[index]
+        scene.play(
+            m.Indicate(occurrence), m.Indicate(entry),
+        )
+        scene.play(
+            m.Transform(
+                occurrence, entry["val"].copy().move_to(occurrence).set_color(m.WHITE)
+            )
+        )
 
 
 class SquareOfPred(m.Scene):
@@ -95,7 +175,7 @@ class SquareOfPred(m.Scene):
         def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
             call, m.RIGHT * 5
         )
-        lines = m.VGroup(
+        lines = m.Group(
             m.Line(
                 call.get_corner(m.RIGHT) + m.RIGHT * 0.2,
                 def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
@@ -114,40 +194,13 @@ class SquareOfPred(m.Scene):
         self.wait()
 
         # Show context
-        context = [
-            m.TextMobject("Contexte~:", color=m.GRAY).move_to(
-                def_instance, aligned_edge=m.LEFT
-            )
-        ]
-        context[0].generate_target().shift(m.UP * 3.5)
-        self.play(m.FadeIn(context[0]), m.MoveToTarget(context[0]))
+        context = CallContext(def_instance, self)
         # add x=val to context
-        context.append(
-            m.VDict(
-                ("name", m.TextMobject("x =", color=m.GRAY)),
-                ("val", call["val"].copy().set_color(m.GRAY)),
-            )
-        )
-        context[-1]["name"].next_to(context[-2], m.DOWN, aligned_edge=m.LEFT)
-        context[-1]["val"].generate_target().next_to(context[-1]["name"], m.RIGHT)
-        self.play(m.Indicate(call["val"]))
-        self.play(
-            m.ShowCreation(context[-1]["name"]), m.MoveToTarget(context[-1]["val"])
-        )
+        context.add("x", call["val"], self)
 
         # Replace x by its value
         self.wait()
-        self.play(
-            m.Indicate(def_instance["pred"]["def"]["val"]), m.Indicate(context[-1])
-        )
-        self.play(
-            m.Transform(
-                def_instance["pred"]["def"]["val"],
-                m.TextMobject(f"\\verb|{val}-1|").move_to(
-                    def_instance["pred"]["def"]["val"]
-                ),
-            )
-        )
+        context.replace_occurrence(-1, def_instance["pred"]["def"]["val"], self)
         self.wait()
 
         # Evaluate pred_x
@@ -161,39 +214,21 @@ class SquareOfPred(m.Scene):
         )
         self.wait()
         # add pred_x=val-1 to context
-        context.append(def_instance["pred"]["def"])
-        context[-1].generate_target().next_to(context[-2], m.DOWN, aligned_edge=m.LEFT)
-        context[-1].target.set_color(m.GRAY)
-        self.play(m.Indicate(context[-1]))
+        context.add(
+            "pred\\_x",
+            def_instance["pred"]["def"]["val"],
+            self,
+            highlight=def_instance["pred"]["def"],
+        )
         self.play(
-            m.FadeOut(def_instance["pred"]["let"]),
-            m.FadeOut(def_instance["pred"]["end"]),
-            m.MoveToTarget(context[-1]),
-            m.ApplyMethod(def_instance["res"].move_to, def_instance),
+            m.FadeOut(def_instance["pred"]),
+            m.ApplyMethod(def_instance["res"].next_to, lines[1], m.RIGHT),
         )
         self.wait()
 
         # Replace pred_x by its value
-        op1 = m.TextMobject(f"\\verb|{val-1}|").move_to(
-            def_instance["res"], aligned_edge=m.LEFT
-        )
-        def_instance["res"]["mul"].generate_target().next_to(op1, m.RIGHT)
-        op2 = op1.copy().next_to(def_instance["res"]["mul"], m.RIGHT)
-        self.play(
-            m.Indicate(def_instance["res"]["op2"]), m.Indicate(context[-1]),
-        )
-        self.play(m.Transform(def_instance["res"]["op2"], op2),)
-        def_instance["res"]["op2"].generate_target().next_to(
-            def_instance["res"]["mul"].target, m.RIGHT
-        )
-        self.play(
-            m.Indicate(def_instance["res"]["op1"]), m.Indicate(context[-1]),
-        )
-        self.play(
-            m.Transform(def_instance["res"]["op1"], op1),
-            m.MoveToTarget(def_instance["res"]["mul"]),
-            m.MoveToTarget(def_instance["res"]["op2"]),
-        )
+        context.replace_occurrence(-1, def_instance["res"]["op2"], self)
+        context.replace_occurrence(-1, def_instance["res"]["op1"], self)
 
         # Evaluate the result
         self.wait()
@@ -209,7 +244,7 @@ class SquareOfPred(m.Scene):
         # Wrap up
         self.wait()
         self.play(
-            *[m.FadeOut(l) for l in context],
+            m.FadeOut(context.entries),
             m.FadeOut(call),
             m.ApplyMethod(def_instance["res"].center),
             m.Uncreate(lines),
