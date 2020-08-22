@@ -1,6 +1,6 @@
 # Programming animations
 
-Animations for EPITA's introduction OCaml seminar, using
+Animations for helping programming begginers understand some mechanisms, using
 [manim](https://github.com/ManimCommunity/manim/#usage).
 
 ## Installing manim
@@ -19,6 +19,6 @@ it, you need to run `source venv/bin/activate` again.
 
 ## Building the animations
 
-After installing manim, you can run `manim [options] seminar.py` to render the
-animations. For example, `manim -p seminar.py` will render and play your choosen
-animation, `manim seminar.py` will only render it.
+After installing manim, you can run `manim [options] ocaml.py` to render the animations.
+For example, `manim -p ocaml.py` will render and play your choosen animation, `manim
+ocaml.py` will only render it.
