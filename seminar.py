@@ -31,12 +31,12 @@ class CallContext:
         )
         scene.play(m.FadeInFrom(self.entries, direction=m.DOWN))
 
-    # pylint: disable=too-many-arguments
+        self.scene = scene
+
     def add(
         self,
         name: str,
         val_orig: m.Mobject,
-        scene: m.Scene,
         highlight: m.Mobject = None,
         extra_animations: List[m.Animation] = None,
     ) -> None:
@@ -53,7 +53,7 @@ class CallContext:
         the value in the context, the returned animations will make the copy
         move to this position.
         """
-        scene.play(m.Indicate(highlight if highlight else val_orig))
+        self.scene.play(m.Indicate(highlight if highlight else val_orig))
 
         association = m.VDict(
             ("name", m.TextMobject(name, color=m.GRAY)),
@@ -66,7 +66,7 @@ class CallContext:
             association["eq"], m.RIGHT
         ).set_color(m.GRAY)
 
-        scene.play(
+        self.scene.play(
             m.ApplyMethod(self.entries.shift, m.UP * 0.5),
             m.FadeInFrom(association["name"], direction=m.DOWN),
             m.FadeInFrom(association["eq"], direction=m.DOWN),
@@ -74,11 +74,9 @@ class CallContext:
             *(extra_animations if extra_animations else []),
         )
         self.entries.add(association)
-        scene.remove(association)  # The previous line created a copy
+        self.scene.remove(association)  # The previous line created a copy
 
-    def replace_occurrence(
-        self, index: int, occurrence: m.Mobject, scene: m.Scene
-    ) -> None:
+    def replace_occurrence(self, index: int, occurrence: m.Mobject) -> None:
         """
         Replace an occurrence of a name by the value store in the context,
         highlighting the link between them through animations
@@ -94,14 +92,14 @@ class CallContext:
             occurrence_rect.get_corner(m.UP),
             color=m.GREEN,
         )
-        scene.play(
+        self.scene.play(
             m.ShowCreationThenFadeOut(entry_rect),
             m.ShowCreationThenFadeOut(occurrence_rect),
             m.ShowCreationThenFadeOut(link),
         )
 
         # Actually replace the occurrence
-        scene.play(
+        self.scene.play(
             m.Transform(
                 occurrence, entry["val"].copy().move_to(occurrence).set_color(m.WHITE)
             )
@@ -231,11 +229,11 @@ class SquareOfPred(m.Scene):
         # Show context
         context = CallContext(def_instance, self)
         # add x=val to context
-        context.add("x", call["val"], self)
+        context.add("x", call["val"])
 
         # Replace x by its value
         self.wait()
-        context.replace_occurrence(-1, def_instance["pred"]["def"]["val"]["x"], self)
+        context.replace_occurrence(-1, def_instance["pred"]["def"]["val"]["x"])
         self.wait()
 
         # Evaluate pred_x
@@ -245,7 +243,6 @@ class SquareOfPred(m.Scene):
         context.add(
             "pred\\_x",
             def_instance["pred"]["def"]["val"],
-            self,
             highlight=def_instance["pred"],
             extra_animations=[
                 m.FadeOutAndShift(def_instance["pred"], direction=m.UP),
@@ -255,8 +252,8 @@ class SquareOfPred(m.Scene):
         self.wait()
 
         # Replace pred_x by its value
-        context.replace_occurrence(-1, def_instance["res"]["op2"], self)
-        context.replace_occurrence(-1, def_instance["res"]["op1"], self)
+        context.replace_occurrence(-1, def_instance["res"]["op2"])
+        context.replace_occurrence(-1, def_instance["res"]["op1"])
 
         # Evaluate the result
         self.wait()
