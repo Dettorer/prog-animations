@@ -107,78 +107,82 @@ class CallContext:
         )
 
 
-def get_square_of_pred() -> m.VDict:
-    """Generate a renderable `square_of_pred` OCaml function"""
-    # first line: `let square_of_pred x =`
-    fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
-
-    # second line: `let pred_x = x - 1 in`
-    # -> let
-    pred_let = (
-        m.TextMobject("\\verb|let|")
-        .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
-        .shift(INDENT)
-    )
-    # -> pred_x = x - 1
-    # ---> pred_x =
-    pred_def = m.VDict(
-        (
-            "name",
-            m.TextMobject("\\verb|pred_x =|").next_to(
-                pred_let, m.RIGHT, aligned_edge=m.UP
-            ),
-        )
-    )
-    # ---> x - 1
-    # -----> x
-    pred_def_val = m.VDict(
-        ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
-    )
-    # -----> - 1
-    pred_def_val.add(
-        (
-            "min",
-            m.TextMobject("\\verb|- 1|").next_to(
-                pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
-            ),
-        )
-    )
-    pred_def.add(("val", pred_def_val))
-    ## in
-    pred_end = m.TextMobject("\\verb|in|").next_to(pred_def, m.RIGHT, aligned_edge=m.UP)
-    pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
-
-    ### Last line: `pred_x * pred_x`
-    res = m.VDict(
-        (
-            "op1",
-            m.TextMobject("\\verb|pred_x|").next_to(pred, m.DOWN, aligned_edge=m.LEFT),
-        )
-    )
-    res.add(("mul", m.TextMobject("\\verb|*|").next_to(res["op1"], m.RIGHT)))
-    res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
-
-    return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
-
-
 class SquareOfPred(m.Scene):
-    """An animation to illustrate the evaluation of a simple OCaml function
-
-    The function:
-    ```ocaml
-    let square_of_pred x =
-        let pred_x = x-1 in
-        pred_x * pred_x
-    ```
-    """
+    """An animation to illustrate the evaluation of a simple OCaml function"""
 
     def_box = None
     def_scale_ratio = 0.5
 
+    @staticmethod
+    def get_def() -> m.VDict:
+        """Generate a renderable `square_of_pred` OCaml function
+
+        The function:
+        ```ocaml
+        let square_of_pred x =
+            let pred_x = x-1 in
+            pred_x * pred_x
+        ```
+        """
+        # first line: `let square_of_pred x =`
+        fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
+
+        # second line: `let pred_x = x - 1 in`
+        # -> let
+        pred_let = (
+            m.TextMobject("\\verb|let|")
+            .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
+            .shift(INDENT)
+        )
+        # -> pred_x = x - 1
+        # ---> pred_x =
+        pred_def = m.VDict(
+            (
+                "name",
+                m.TextMobject("\\verb|pred_x =|").next_to(
+                    pred_let, m.RIGHT, aligned_edge=m.UP
+                ),
+            )
+        )
+        # ---> x - 1
+        # -----> x
+        pred_def_val = m.VDict(
+            ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
+        )
+        # -----> - 1
+        pred_def_val.add(
+            (
+                "min",
+                m.TextMobject("\\verb|- 1|").next_to(
+                    pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
+                ),
+            )
+        )
+        pred_def.add(("val", pred_def_val))
+        ## in
+        pred_end = m.TextMobject("\\verb|in|").next_to(
+            pred_def, m.RIGHT, aligned_edge=m.UP
+        )
+        pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
+
+        ### Last line: `pred_x * pred_x`
+        res = m.VDict(
+            (
+                "op1",
+                m.TextMobject("\\verb|pred_x|").next_to(
+                    pred, m.DOWN, aligned_edge=m.LEFT
+                ),
+            )
+        )
+        res.add(("mul", m.TextMobject("\\verb|*|").next_to(res["op1"], m.RIGHT)))
+        res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
+
+        return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
+
     def construct_def_box(self) -> None:
         """Show the creation of the OCaml definiton, with a box"""
         # Create the function definition and its rectangular box
-        self.def_box = m.VDict(("function", get_square_of_pred()))
+        self.def_box = m.VDict(("function", self.get_def()))
         self.def_box.add(
             ("box", m.Rectangle(height=1.5).surround(self.def_box["function"]))
         )
