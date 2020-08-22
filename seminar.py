@@ -107,6 +107,131 @@ class CallContext:
         )
 
 
+class Fact(m.Scene):
+    """An animation to illustrate the evaluation of a simple recursive OCaml factorial
+    function"""
+
+    def_box = None
+    def_scale_ratio = 0.4
+
+    # pylint: disable=too-many-locals
+    @staticmethod
+    def get_def() -> m.Mobject:
+        """Generate a renderable OCaml fact function
+
+        The function:
+        ```ocaml
+        let rec fact n =
+          if n = 0 then
+            1
+          else
+            n * fact (n - 1)
+        ```
+        """
+        # First line: `let rec fact n =`
+        fn_line = m.TextMobject("\\verb|let rec fact n =|")
+
+        # Second line: `if n = 0 then`
+        # -> `if`
+        if_if = (
+            m.TextMobject("\\verb|if|")
+            .next_to(fn_line, m.DOWN, aligned_edge=m.LEFT)
+            .shift(INDENT)
+        )
+        # -> `n = 0`
+        if_cond_n = m.TextMobject("\\verb|n|").next_to(if_if, m.RIGHT)  # `n`
+        if_cond_eq = m.TextMobject("\\verb|=|").next_to(if_cond_n, m.RIGHT)  # `=`
+        if_cond_zero = m.TextMobject("\\verb|0|").next_to(if_cond_eq, m.RIGHT)  # `0`
+        if_cond = m.VDict(  # assembling
+            ("n", if_cond_n), ("=", if_cond_eq), ("0", if_cond_zero)
+        )
+        # -> `then`
+        if_then = m.TextMobject("\\verb|then|").next_to(if_cond, m.RIGHT)
+        # <- assembling
+        if_line = m.VDict(("if", if_if), ("cond", if_cond), ("then", if_then))
+
+        # Third line: `1`
+        base_line = (
+            m.TextMobject("\\verb|1|")
+            .next_to(if_line, m.DOWN, aligned_edge=m.LEFT)
+            .shift(INDENT)
+        )
+
+        # Fourth line: `else`
+        else_line = (
+            m.TextMobject("\\verb|else|")
+            .next_to(base_line, m.DOWN, aligned_edge=m.LEFT)
+            .shift(-INDENT)
+        )
+
+        # Fifth line: `n * fact (n - 1)`
+        # -> n
+        rec_n = (
+            m.TextMobject("\\verb|n|")
+            .next_to(else_line, m.DOWN, aligned_edge=m.LEFT)
+            .shift(INDENT)
+        )
+        # -> *
+        rec_times = m.TextMobject("\\verb|*|").next_to(rec_n, m.RIGHT)
+        # -> `fact (n - 1)`
+        # ---> `fact`
+        rec_call_name = m.TextMobject("\\verb|fact|").next_to(rec_times, m.RIGHT)
+        # ---> `(n - 1)`
+        rec_call_arg_ob = m.TextMobject("\\verb|(|").next_to(  # `(`
+            rec_call_name, m.RIGHT
+        )
+        rec_call_arg_n = m.TextMobject("\\verb|n|").next_to(  # `n`
+            rec_call_arg_ob, m.RIGHT * 0.3
+        )
+        rec_call_arg_min = m.TextMobject("\\verb|-|").next_to(  # `-`
+            rec_call_arg_n, m.RIGHT
+        )
+        rec_call_arg_one = m.TextMobject("\\verb|1|").next_to(  # `1`
+            rec_call_arg_min, m.RIGHT
+        )
+        rec_call_arg_cb = m.TextMobject("\\verb|)|").next_to(  # `)`
+            rec_call_arg_one, m.RIGHT * 0.3
+        )
+        rec_call_arg = m.VDict(  # assembling
+            ("(", rec_call_arg_ob),
+            ("n", rec_call_arg_n),
+            ("-", rec_call_arg_min),
+            ("1", rec_call_arg_one),
+            (")", rec_call_arg_cb),
+        )
+        # <--- assembling
+        rec_call = m.VDict(("name", rec_call_name), ("arg", rec_call_arg))
+        # <- assembling
+        rec = m.VDict(("n", rec_n), ("*", rec_times), ("call", rec_call))
+
+        return m.VDict(
+            ("fn", fn_line),
+            ("if", if_line),
+            ("base", base_line),
+            ("else", else_line),
+            ("rec", rec),
+        ).move_to(m.ORIGIN)
+
+    def construct_def_box(self):
+        """Construct the function's definition in a box"""
+        fact = self.get_def()
+        rect = m.Rectangle().surround(fact, stretch=True)
+
+        self.play(m.Write(fact))
+        self.play(m.ShowCreation(rect))
+
+        self.def_box = m.VDict(("def", fact), ("box", rect))
+        self.def_box.generate_target().scale(self.def_scale_ratio).to_corner(m.UL)
+
+        self.play(m.MoveToTarget(self.def_box))
+
+    def construct_call(self, arg: int) -> None:
+        """Show how a call to the function with the given argument is evaluated"""
+
+    def construct(self) -> None:
+        self.construct_def_box()
+
+
 class SquareOfPred(m.Scene):
     """An animation to illustrate the evaluation of a simple OCaml function"""
 
