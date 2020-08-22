@@ -77,9 +77,10 @@ class CallContext:
         self.scene.remove(association)  # The previous line created a copy
 
     def replace_occurrence(self, index: int, occurrence: m.Mobject) -> None:
-        """
-        Replace an occurrence of a name by the value store in the context,
-        highlighting the link between them through animations
+        """ Replace an occurrence of a name by the value stored in the context,
+        highlighting the link between them through animations.
+
+        Warning: index `0` in the context entries is the title line ("Contexte :")
         """
         entry = self.entries[index]
 
