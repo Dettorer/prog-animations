@@ -1,4 +1,5 @@
-# pylint: disable=missing-module-docstring
+"""Animations showing some OCaml mechanisms"""
+
 from typing import List
 
 import manim as m
