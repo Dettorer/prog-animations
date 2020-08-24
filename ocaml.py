@@ -1,6 +1,6 @@
 """Animations showing some OCaml mechanisms"""
 
-from typing import List
+from typing import List, Tuple
 
 import manim as m
 
@@ -13,7 +13,7 @@ INDENT = m.RIGHT
 def replace_expr(scene: m.Scene, expr: m.Mobject, text: str, **kwargs) -> None:
     """Play an animation that transforms an expression in an other
 
-    kwargs are given to the new Mobject creation function
+    kwargs are given to a call to the new Mobject's `move_to` method
     """
     scene.play(m.Transform(expr, m.TextMobject(text).move_to(expr, **kwargs)))
 
@@ -108,7 +108,7 @@ class CallContext:
         )
 
 
-class Fact(m.Scene):
+class Fact(m.MovingCameraScene):
     """An animation to illustrate the evaluation of a simple recursive OCaml factorial
     function"""
 
@@ -234,11 +234,159 @@ class Fact(m.Scene):
 
         self.play(m.MoveToTarget(self.def_box))
 
-    def construct_call(self, arg: int) -> None:
+    def construct_call(self, val: int) -> None:
         """Show how a call to the function with the given argument is evaluated"""
+        call = m.VDict(
+            ("name", m.TextMobject("\\verb|fact|").shift(m.LEFT * 5 + m.DOWN * 0.7)),
+            ("val", m.TextMobject(f"\\verb|{val}|")),
+        )
+        call["val"].next_to(call["name"], m.RIGHT, aligned_edge=m.UP)
+        self.play(m.FadeIn(call))
+
+        # Show the first call
+        def_instance = self.def_box["function"].deepcopy().remove("fn")
+        def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
+            call, m.RIGHT * 5
+        )
+        lines = m.Group(
+            m.Line(
+                call.get_corner(m.RIGHT) + m.RIGHT * 0.2,
+                def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
+                color=m.BLUE,
+            ),
+            m.Line(
+                def_instance.target.get_corner(m.DL) + m.LEFT * 0.2,
+                def_instance.target.get_corner(m.UL) + m.LEFT * 0.2,
+                color=m.BLUE,
+            ),
+        )
+        self.play(m.Indicate(self.def_box))
+        self.play(
+            m.MoveToTarget(def_instance), m.ShowCreation(lines),
+        )
+        self.wait()
+
+        _, res_mobject = self.eval_call(def_instance, val, call["val"])
+
+        self.play(m.FadeOut(call), m.FadeOut(lines), m.ApplyMethod(res_mobject.center))
+
+    def eval_call(
+        self, call: m.Mobject, val: int, val_mobject: m.Mobject
+    ) -> Tuple[int, m.Mobject]:
+        """Show the evaluation of one function call, recursively
+
+        call: the manim object representing the call, expected to be oneline
+        val: the value of `n` for that call
+
+        Returns the value and the corresponding Mobject of the result of the call
+        """
+        context = CallContext(call, self)
+        context.add("n", val_mobject)
+        self.wait()
+
+        # Highlight the if-then-else structure and evaluate its condition
+        self.play(
+            m.Indicate(call["if"]["if"]),
+            m.Indicate(call["if"]["then"]),
+            m.Indicate(call["else"]),
+        )
+        self.play(m.Indicate(call["if"]["cond"]))
+        context.replace_occurrence(-1, call["if"]["cond"]["n"])
+        replace_expr(self, call["if"]["cond"], f"\\verb|{str(val == 0).lower()}|")
+        self.wait()
+
+        # Replace the expression with the correct if branch
+        self.play(m.Indicate(call["if"]["cond"]))
+        if val == 0:
+            bad = "rec"
+            good = "base"
+        else:
+            good = "rec"
+            bad = "base"
+        strike_through = m.Line(
+            call[bad].get_corner(m.DL) + m.DL * 0.1,
+            call[bad].get_corner(m.UR) + m.UR * 0.1,
+        )
+        rect = m.Rectangle().surround(call[good], stretch=True)
+        self.play(m.ShowCreation(strike_through), m.ShowCreation(rect))
+        self.wait()
+        self.play(
+            *map(m.FadeOut, [strike_through, rect, call["if"], call[bad], call["else"]])
+        )
+        self.play(
+            m.ApplyMethod(call[good].next_to, call.get_corner(m.LEFT), m.RIGHT * 0.1)
+        )
+
+        if val == 0:  # end of recursion
+            self.play(*map(m.FadeOut, context.entries))
+            return 1, call["base"]
+
+        # Evaluate the expression containing the recursive call up to the call, starting
+        # by the right-hand operand of the multiplication
+        self.play(m.Indicate(call["rec"]))
+        self.play(m.Indicate(call["rec"]["call"]))
+        self.play(m.Indicate(call["rec"]["call"]["arg"]))
+        context.replace_occurrence(-1, call["rec"]["call"]["arg"]["n"])
+        replace_expr(
+            self, call["rec"]["call"]["arg"], f"\\verb|{val - 1}|", aligned_edge=m.LEFT
+        )
+        # Evaluate the recursive call
+        rect = m.Rectangle(color=m.BLUE).surround(call["rec"]["call"], stretch=True)
+        def_instance = self.def_box["function"].deepcopy().remove("fn")
+        def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
+            rect, m.RIGHT * 5
+        )
+        lines = m.Group(
+            m.Line(
+                rect.get_corner(m.RIGHT),
+                def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
+                color=m.BLUE,
+            ),
+            m.Line(
+                def_instance.target.get_corner(m.DL) + m.LEFT * 0.2,
+                def_instance.target.get_corner(m.UL) + m.LEFT * 0.2,
+                color=m.BLUE,
+            ),
+        )
+        self.play(m.ShowCreation(rect))
+        self.play(m.Indicate(self.def_box))
+        self.play(m.MoveToTarget(def_instance), m.ShowCreation(lines))
+        self.wait()
+        shift_vector = (
+            call["rec"]["call"]["arg"].get_center() - val_mobject.get_center()
+        )
+        self.play(
+            m.ApplyMethod(self.camera_frame.shift, shift_vector),
+            m.ApplyMethod(self.def_box.shift, shift_vector),
+        )
+        recursive_call_res, recursive_call_res_mobject = self.eval_call(
+            def_instance, val - 1, call["rec"]["call"]["arg"]
+        )
+        self.play(
+            m.ApplyMethod(self.camera_frame.shift, -shift_vector),
+            m.ApplyMethod(self.def_box.shift, -shift_vector),
+        )
+        self.play(
+            m.FadeOut(lines),
+            m.FadeOut(rect),
+            m.FadeOut(call["rec"]["call"]),
+            m.ApplyMethod(
+                recursive_call_res_mobject.next_to, call["rec"]["*"], m.RIGHT
+            ),
+        )
+        self.wait()
+        call["rec"]["call"] = recursive_call_res_mobject
+        # Evaluate the left-hand operand of the multiplication
+        context.replace_occurrence(-1, call["rec"]["n"])
+        res = val * recursive_call_res
+        replace_expr(self, call["rec"], f"\\verb|{res}|", aligned_edge=m.LEFT)
+        self.play(*map(m.FadeOut, context.entries))
+        return res, call["rec"]
 
     def construct(self) -> None:
         self.construct_def_box()
+        self.construct_call(4)
+        self.wait()
 
 
 class SquareOfPred(m.Scene):
