@@ -140,14 +140,18 @@ class Fact(m.Scene):
             .shift(INDENT)
         )
         # -> `n = 0`
-        if_cond_n = m.TextMobject("\\verb|n|").next_to(if_if, m.RIGHT)  # `n`
+        if_cond_n = m.TextMobject("\\verb|n|").next_to(  # `n`
+            if_if, m.RIGHT, aligned_edge=m.DOWN
+        )
         if_cond_eq = m.TextMobject("\\verb|=|").next_to(if_cond_n, m.RIGHT)  # `=`
         if_cond_zero = m.TextMobject("\\verb|0|").next_to(if_cond_eq, m.RIGHT)  # `0`
         if_cond = m.VDict(  # assembling
             ("n", if_cond_n), ("=", if_cond_eq), ("0", if_cond_zero)
         )
         # -> `then`
-        if_then = m.TextMobject("\\verb|then|").next_to(if_cond, m.RIGHT)
+        if_then = m.TextMobject("\\verb|then|").next_to(
+            if_cond, m.RIGHT, aligned_edge=m.UP
+        )
         # <- assembling
         if_line = m.VDict(("if", if_if), ("cond", if_cond), ("then", if_then))
 
@@ -173,13 +177,17 @@ class Fact(m.Scene):
             .shift(INDENT)
         )
         # -> *
-        rec_times = m.TextMobject("\\verb|*|").next_to(rec_n, m.RIGHT)
+        rec_times = m.TextMobject("\\verb|*|").next_to(
+            rec_n, m.RIGHT, aligned_edge=m.UP
+        )
         # -> `fact (n - 1)`
         # ---> `fact`
-        rec_call_name = m.TextMobject("\\verb|fact|").next_to(rec_times, m.RIGHT)
+        rec_call_name = m.TextMobject("\\verb|fact|").next_to(
+            rec_times, m.RIGHT, aligned_edge=m.DOWN
+        )
         # ---> `(n - 1)`
         rec_call_arg_ob = m.TextMobject("\\verb|(|").next_to(  # `(`
-            rec_call_name, m.RIGHT
+            rec_call_name, m.RIGHT, aligned_edge=m.UP
         )
         rec_call_arg_n = m.TextMobject("\\verb|n|").next_to(  # `n`
             rec_call_arg_ob, m.RIGHT * 0.3
@@ -221,7 +229,7 @@ class Fact(m.Scene):
         self.play(m.Write(fact))
         self.play(m.ShowCreation(rect))
 
-        self.def_box = m.VDict(("def", fact), ("box", rect))
+        self.def_box = m.VDict(("function", fact), ("box", rect))
         self.def_box.generate_target().scale(self.def_scale_ratio).to_corner(m.UL)
 
         self.play(m.MoveToTarget(self.def_box))
