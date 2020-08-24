@@ -292,8 +292,8 @@ class Fact(m.MovingCameraScene):
         )
         self.play(m.Indicate(call["if"]["cond"]))
         context.replace_occurrence(-1, call["if"]["cond"]["n"])
-        replace_expr(self, call["if"]["cond"], f"\\verb|{str(val == 0).lower()}|")
         self.wait()
+        replace_expr(self, call["if"]["cond"], f"\\verb|{str(val == 0).lower()}|")
 
         # Replace the expression with the correct if branch
         self.play(m.Indicate(call["if"]["cond"]))
