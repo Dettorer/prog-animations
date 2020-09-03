@@ -260,6 +260,7 @@ class Fact(m.MovingCameraScene):
                 color=m.BLUE,
             ),
         )
+        self.wait()
         self.play(m.Indicate(self.def_box))
         self.play(
             m.MoveToTarget(def_instance), m.ShowCreation(lines),
@@ -284,18 +285,13 @@ class Fact(m.MovingCameraScene):
         context.add("n", val_mobject)
         self.wait()
 
-        # Highlight the if-then-else structure and evaluate its condition
-        self.play(
-            m.Indicate(call["if"]["if"]),
-            m.Indicate(call["if"]["then"]),
-            m.Indicate(call["else"]),
-        )
-        self.play(m.Indicate(call["if"]["cond"]))
+        # Evaluate the if's condition
         context.replace_occurrence(-1, call["if"]["cond"]["n"])
         self.wait()
         replace_expr(self, call["if"]["cond"], f"\\verb|{str(val == 0).lower()}|")
 
         # Replace the expression with the correct if branch
+        self.wait()
         self.play(m.Indicate(call["if"]["cond"]))
         if val == 0:
             bad = "rec"
@@ -323,10 +319,10 @@ class Fact(m.MovingCameraScene):
 
         # Evaluate the expression containing the recursive call up to the call, starting
         # by the right-hand operand of the multiplication
-        self.play(m.Indicate(call["rec"]))
+        self.wait()
         self.play(m.Indicate(call["rec"]["call"]))
-        self.play(m.Indicate(call["rec"]["call"]["arg"]))
         context.replace_occurrence(-1, call["rec"]["call"]["arg"]["n"])
+        self.wait(m.DEFAULT_WAIT_TIME / 2)
         replace_expr(
             self, call["rec"]["call"]["arg"], f"\\verb|{val - 1}|", aligned_edge=m.LEFT
         )
@@ -349,6 +345,7 @@ class Fact(m.MovingCameraScene):
             ),
         )
         self.play(m.ShowCreation(rect))
+        self.wait(m.DEFAULT_WAIT_TIME / 2)
         self.play(m.Indicate(self.def_box))
         self.play(m.MoveToTarget(def_instance), m.ShowCreation(lines))
         self.wait()
