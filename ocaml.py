@@ -507,6 +507,7 @@ class SquareOfPred(m.Scene):
                 color=m.BLUE,
             ),
         )
+        self.wait()
         self.play(m.Indicate(self.def_box))
         self.play(
             m.MoveToTarget(def_instance), m.ShowCreation(lines),
