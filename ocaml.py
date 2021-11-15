@@ -1,11 +1,20 @@
 """Animations showing some OCaml mechanisms"""
 
+from copy import deepcopy
 from typing import List, Tuple
 
 import manim as m
 
-m.Rectangle.CONFIG["stroke_width"] = 2
-m.Line.CONFIG["stroke_width"] = 2
+class ThinRectangle(m.Rectangle):
+    """A Manim rectangle with a smaller stroke width"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, stroke_width=2, **kwargs)
+
+class ThinLine(m.Line):
+    """A Manim line with a smaller stroke width"""
+    def __init__(self, *args, **kwargs):
+        self.stroke_width = 2
+        super().__init__(*args, stroke_width=2, **kwargs)
 
 INDENT = m.RIGHT
 
@@ -15,7 +24,7 @@ def replace_expr(scene: m.Scene, expr: m.Mobject, text: str, **kwargs) -> None:
 
     kwargs are given to a call to the new Mobject's `move_to` method
     """
-    scene.play(m.Transform(expr, m.TextMobject(text).move_to(expr, **kwargs)))
+    scene.play(m.Transform(expr, m.Tex(text).move_to(expr, **kwargs)))
 
 
 class CallContext:
@@ -26,7 +35,7 @@ class CallContext:
 
     def __init__(self, origin: m.Mobject, scene: m.Scene):
         self.entries = m.Group(
-            m.TextMobject("Contexte~:", color=m.GRAY).next_to(
+            m.Tex("Contexte~:", color=m.GRAY).next_to(
                 origin, m.UP * 2, aligned_edge=m.LEFT
             )
         )
@@ -56,11 +65,11 @@ class CallContext:
         """
         self.scene.play(m.Indicate(highlight if highlight else val_orig))
 
-        association = m.VDict(
-            ("name", m.TextMobject(name, color=m.GRAY)),
-            ("eq", m.TextMobject("=", color=m.GRAY)),
+        association = m.VDict([
+            ("name", m.Tex(name, color=m.GRAY)),
+            ("eq", m.Tex("=", color=m.GRAY)),
             ("val", val_orig.copy()),
-        )
+        ])
         association["name"].move_to(self.entries[-1], aligned_edge=m.LEFT)
         association["eq"].next_to(association["name"], m.RIGHT)
         association["val"].generate_target().next_to(
@@ -87,9 +96,9 @@ class CallContext:
 
         # Highlight what's going to happen with little linked rectangles around
         # the entry and the occurrence
-        entry_rect = m.Rectangle(color=m.GREEN).surround(entry, stretch=True)
-        occurrence_rect = m.Rectangle(color=m.GREEN).surround(occurrence, stretch=True)
-        link = m.Line(
+        entry_rect = ThinRectangle(color=m.GREEN).surround(entry, stretch=True)
+        occurrence_rect = ThinRectangle(color=m.GREEN).surround(occurrence, stretch=True)
+        link = ThinLine(
             entry_rect.get_corner(m.DOWN),
             occurrence_rect.get_corner(m.UP),
             color=m.GREEN,
@@ -130,41 +139,41 @@ class Fact(m.MovingCameraScene):
         ```
         """
         # First line: `let rec fact n =`
-        fn_line = m.TextMobject("\\verb|let rec fact n =|")
+        fn_line = m.Tex("\\verb|let rec fact n =|")
 
         # Second line: `if n = 0 then`
         # -> `if`
         if_if = (
-            m.TextMobject("\\verb|if|")
+            m.Tex("\\verb|if|")
             .next_to(fn_line, m.DOWN, aligned_edge=m.LEFT)
             .shift(INDENT)
         )
         # -> `n = 0`
-        if_cond_n = m.TextMobject("\\verb|n|").next_to(  # `n`
+        if_cond_n = m.Tex("\\verb|n|").next_to(  # `n`
             if_if, m.RIGHT, aligned_edge=m.DOWN
         )
-        if_cond_eq = m.TextMobject("\\verb|=|").next_to(if_cond_n, m.RIGHT)  # `=`
-        if_cond_zero = m.TextMobject("\\verb|0|").next_to(if_cond_eq, m.RIGHT)  # `0`
-        if_cond = m.VDict(  # assembling
+        if_cond_eq = m.Tex("\\verb|=|").next_to(if_cond_n, m.RIGHT)  # `=`
+        if_cond_zero = m.Tex("\\verb|0|").next_to(if_cond_eq, m.RIGHT)  # `0`
+        if_cond = m.VDict([  # assembling
             ("n", if_cond_n), ("=", if_cond_eq), ("0", if_cond_zero)
-        )
+        ])
         # -> `then`
-        if_then = m.TextMobject("\\verb|then|").next_to(
+        if_then = m.Tex("\\verb|then|").next_to(
             if_cond, m.RIGHT, aligned_edge=m.UP
         )
         # <- assembling
-        if_line = m.VDict(("if", if_if), ("cond", if_cond), ("then", if_then))
+        if_line = m.VDict([("if", if_if), ("cond", if_cond), ("then", if_then)])
 
         # Third line: `1`
         base_line = (
-            m.TextMobject("\\verb|1|")
+            m.Tex("\\verb|1|")
             .next_to(if_line, m.DOWN, aligned_edge=m.LEFT)
             .shift(INDENT)
         )
 
         # Fourth line: `else`
         else_line = (
-            m.TextMobject("\\verb|else|")
+            m.Tex("\\verb|else|")
             .next_to(base_line, m.DOWN, aligned_edge=m.LEFT)
             .shift(-INDENT)
         )
@@ -172,89 +181,89 @@ class Fact(m.MovingCameraScene):
         # Fifth line: `n * fact (n - 1)`
         # -> n
         rec_n = (
-            m.TextMobject("\\verb|n|")
+            m.Tex("\\verb|n|")
             .next_to(else_line, m.DOWN, aligned_edge=m.LEFT)
             .shift(INDENT)
         )
         # -> *
-        rec_times = m.TextMobject("\\verb|*|").next_to(
+        rec_times = m.Tex("\\verb|*|").next_to(
             rec_n, m.RIGHT, aligned_edge=m.UP
         )
         # -> `fact (n - 1)`
         # ---> `fact`
-        rec_call_name = m.TextMobject("\\verb|fact|").next_to(
+        rec_call_name = m.Tex("\\verb|fact|").next_to(
             rec_times, m.RIGHT, aligned_edge=m.DOWN
         )
         # ---> `(n - 1)`
-        rec_call_arg_ob = m.TextMobject("\\verb|(|").next_to(  # `(`
+        rec_call_arg_ob = m.Tex("\\verb|(|").next_to(  # `(`
             rec_call_name, m.RIGHT, aligned_edge=m.UP
         )
-        rec_call_arg_n = m.TextMobject("\\verb|n|").next_to(  # `n`
+        rec_call_arg_n = m.Tex("\\verb|n|").next_to(  # `n`
             rec_call_arg_ob, m.RIGHT * 0.3
         )
-        rec_call_arg_min = m.TextMobject("\\verb|-|").next_to(  # `-`
+        rec_call_arg_min = m.Tex("\\verb|-|").next_to(  # `-`
             rec_call_arg_n, m.RIGHT
         )
-        rec_call_arg_one = m.TextMobject("\\verb|1|").next_to(  # `1`
+        rec_call_arg_one = m.Tex("\\verb|1|").next_to(  # `1`
             rec_call_arg_min, m.RIGHT
         )
-        rec_call_arg_cb = m.TextMobject("\\verb|)|").next_to(  # `)`
+        rec_call_arg_cb = m.Tex("\\verb|)|").next_to(  # `)`
             rec_call_arg_one, m.RIGHT * 0.3
         )
-        rec_call_arg = m.VDict(  # assembling
+        rec_call_arg = m.VDict([  # assembling
             ("(", rec_call_arg_ob),
             ("n", rec_call_arg_n),
             ("-", rec_call_arg_min),
             ("1", rec_call_arg_one),
             (")", rec_call_arg_cb),
-        )
+        ])
         # <--- assembling
-        rec_call = m.VDict(("name", rec_call_name), ("arg", rec_call_arg))
+        rec_call = m.VDict([("name", rec_call_name), ("arg", rec_call_arg)])
         # <- assembling
-        rec = m.VDict(("n", rec_n), ("*", rec_times), ("call", rec_call))
+        rec = m.VDict([("n", rec_n), ("*", rec_times), ("call", rec_call)])
 
-        return m.VDict(
+        return m.VDict([
             ("fn", fn_line),
             ("if", if_line),
             ("base", base_line),
             ("else", else_line),
             ("rec", rec),
-        ).move_to(m.ORIGIN)
+        ]).move_to(m.ORIGIN)
 
     def construct_def_box(self):
         """Construct the function's definition in a box"""
         fact = self.get_def()
-        rect = m.Rectangle().surround(fact, stretch=True)
+        rect = ThinRectangle().surround(fact, stretch=True)
 
         self.play(m.Write(fact))
         self.play(m.ShowCreation(rect))
 
-        self.def_box = m.VDict(("function", fact), ("box", rect))
+        self.def_box = m.VDict([("function", fact), ("box", rect)])
         self.def_box.generate_target().scale(self.def_scale_ratio).to_corner(m.UL)
 
         self.play(m.MoveToTarget(self.def_box))
 
     def construct_call(self, val: int) -> None:
         """Show how a call to the function with the given argument is evaluated"""
-        call = m.VDict(
-            ("name", m.TextMobject("\\verb|fact|").shift(m.LEFT * 5 + m.DOWN * 0.7)),
-            ("val", m.TextMobject(f"\\verb|{val}|")),
-        )
+        call = m.VDict([
+            ("name", m.Tex("\\verb|fact|").shift(m.LEFT * 5 + m.DOWN * 0.7)),
+            ("val", m.Tex(f"\\verb|{val}|")),
+        ])
         call["val"].next_to(call["name"], m.RIGHT, aligned_edge=m.UP)
         self.play(m.FadeIn(call))
 
         # Show the first call
-        def_instance = self.def_box["function"].deepcopy().remove("fn")
+        def_instance = deepcopy(self.def_box["function"]).remove("fn")
         def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
             call, m.RIGHT * 5
         )
-        lines = m.Group(
-            m.Line(
+        lines = m.VGroup(
+            ThinLine(
                 call.get_corner(m.RIGHT) + m.RIGHT * 0.2,
                 def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
                 color=m.BLUE,
             ),
-            m.Line(
+            ThinLine(
                 def_instance.target.get_corner(m.DL) + m.LEFT * 0.2,
                 def_instance.target.get_corner(m.UL) + m.LEFT * 0.2,
                 color=m.BLUE,
@@ -299,11 +308,11 @@ class Fact(m.MovingCameraScene):
         else:
             good = "rec"
             bad = "base"
-        strike_through = m.Line(
+        strike_through = ThinLine(
             call[bad].get_corner(m.DL) + m.DL * 0.1,
             call[bad].get_corner(m.UR) + m.UR * 0.1,
         )
-        rect = m.Rectangle().surround(call[good], stretch=True)
+        rect = ThinRectangle().surround(call[good], stretch=True)
         self.play(m.ShowCreation(strike_through), m.ShowCreation(rect))
         self.wait()
         self.play(
@@ -327,18 +336,18 @@ class Fact(m.MovingCameraScene):
             self, call["rec"]["call"]["arg"], f"\\verb|{val - 1}|", aligned_edge=m.LEFT
         )
         # Evaluate the recursive call
-        rect = m.Rectangle(color=m.BLUE).surround(call["rec"]["call"], stretch=True)
-        def_instance = self.def_box["function"].deepcopy().remove("fn")
+        rect = ThinRectangle(color=m.BLUE).surround(call["rec"]["call"], stretch=True)
+        def_instance = deepcopy(self.def_box["function"]).remove("fn")
         def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
             rect, m.RIGHT * 5
         )
-        lines = m.Group(
-            m.Line(
+        lines = m.VGroup(
+            ThinLine(
                 rect.get_corner(m.RIGHT),
                 def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
                 color=m.BLUE,
             ),
-            m.Line(
+            ThinLine(
                 def_instance.target.get_corner(m.DL) + m.LEFT * 0.2,
                 def_instance.target.get_corner(m.UL) + m.LEFT * 0.2,
                 color=m.BLUE,
@@ -353,14 +362,14 @@ class Fact(m.MovingCameraScene):
             call["rec"]["call"]["arg"].get_center() - val_mobject.get_center()
         )
         self.play(
-            m.ApplyMethod(self.camera_frame.shift, shift_vector),
+            m.ApplyMethod(self.camera.frame.shift, shift_vector),
             m.ApplyMethod(self.def_box.shift, shift_vector),
         )
         recursive_call_res, recursive_call_res_mobject = self.eval_call(
             def_instance, val - 1, call["rec"]["call"]["arg"]
         )
         self.play(
-            m.ApplyMethod(self.camera_frame.shift, -shift_vector),
+            m.ApplyMethod(self.camera.frame.shift, -shift_vector),
             m.ApplyMethod(self.def_box.shift, -shift_vector),
         )
         self.play(
@@ -404,67 +413,67 @@ class SquareOfPred(m.Scene):
         ```
         """
         # first line: `let square_of_pred x =`
-        fn_def = m.TextMobject("\\verb|let square_of_pred x =|")
+        fn_def = m.Tex("\\verb|let square_of_pred x =|")
 
         # second line: `let pred_x = x - 1 in`
         # -> let
         pred_let = (
-            m.TextMobject("\\verb|let|")
+            m.Tex("\\verb|let|")
             .next_to(fn_def, m.DOWN, aligned_edge=m.LEFT)
             .shift(INDENT)
         )
         # -> pred_x = x - 1
         # ---> pred_x =
-        pred_def = m.VDict(
+        pred_def = m.VDict([
             (
                 "name",
-                m.TextMobject("\\verb|pred_x =|").next_to(
+                m.Tex("\\verb|pred_x =|").next_to(
                     pred_let, m.RIGHT, aligned_edge=m.UP
                 ),
             )
-        )
+        ])
         # ---> x - 1
         # -----> x
-        pred_def_val = m.VDict(
-            ("x", m.TextMobject("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
-        )
+        pred_def_val = m.VDict([
+            ("x", m.Tex("\\verb|x|").next_to(pred_def["name"], m.RIGHT),)
+        ])
         # -----> - 1
-        pred_def_val.add(
+        pred_def_val.add([
             (
                 "min",
-                m.TextMobject("\\verb|- 1|").next_to(
+                m.Tex("\\verb|- 1|").next_to(
                     pred_def_val["x"], m.RIGHT, aligned_edge=m.DOWN
                 ),
             )
-        )
-        pred_def.add(("val", pred_def_val))
+        ])
+        pred_def.add([("val", pred_def_val)])
         ## in
-        pred_end = m.TextMobject("\\verb|in|").next_to(
+        pred_end = m.Tex("\\verb|in|").next_to(
             pred_def, m.RIGHT, aligned_edge=m.UP
         )
-        pred = m.VDict(("let", pred_let), ("def", pred_def), ("end", pred_end),)
+        pred = m.VDict([("let", pred_let), ("def", pred_def), ("end", pred_end),])
 
         ### Last line: `pred_x * pred_x`
-        res = m.VDict(
+        res = m.VDict([
             (
                 "op1",
-                m.TextMobject("\\verb|pred_x|").next_to(
+                m.Tex("\\verb|pred_x|").next_to(
                     pred, m.DOWN, aligned_edge=m.LEFT
                 ),
             )
-        )
-        res.add(("mul", m.TextMobject("\\verb|*|").next_to(res["op1"], m.RIGHT)))
-        res.add(("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT)))
+        ])
+        res.add([("mul", m.Tex("\\verb|*|").next_to(res["op1"], m.RIGHT))])
+        res.add([("op2", res["op1"].copy().next_to(res["mul"], m.RIGHT))])
 
-        return m.VDict(("fn", fn_def), ("pred", pred), ("res", res))
+        return m.VDict([("fn", fn_def), ("pred", pred), ("res", res)])
 
     def construct_def_box(self) -> None:
         """Show the creation of the OCaml definiton, with a box"""
         # Create the function definition and its rectangular box
-        self.def_box = m.VDict(("function", self.get_def()))
-        self.def_box.add(
-            ("box", m.Rectangle(height=1.5).surround(self.def_box["function"]))
-        )
+        self.def_box = m.VDict([("function", self.get_def())])
+        self.def_box.add([
+            ("box", ThinRectangle(height=1.5).surround(self.def_box["function"]))
+        ])
 
         # Animate the creations
         self.play(m.Write(self.def_box["function"]))
@@ -480,25 +489,25 @@ class SquareOfPred(m.Scene):
 
         val: the argument given to square_of_pred
         """
-        call = m.VDict(
-            ("name", m.TextMobject("\\verb|square_of_pred|").shift(m.LEFT * 2)),
-            ("val", m.TextMobject(f"\\verb|{val}|")),
-        )
+        call = m.VDict([
+            ("name", m.Tex("\\verb|square_of_pred|").shift(m.LEFT * 2)),
+            ("val", m.Tex(f"\\verb|{val}|")),
+        ])
         call["val"].next_to(call["name"], m.RIGHT, aligned_edge=m.UP)
         self.play(m.FadeIn(call))
 
         # Shift the call and show instanciated definition of the function
-        def_instance = self.def_box["function"].deepcopy().remove("fn")
+        def_instance = deepcopy(self.def_box["function"]).remove("fn")
         def_instance.generate_target().scale(1 / self.def_scale_ratio).next_to(
             call, m.RIGHT * 5
         )
-        lines = m.Group(
-            m.Line(
+        lines = m.VGroup(
+            ThinLine(
                 call.get_corner(m.RIGHT) + m.RIGHT * 0.2,
                 def_instance.target.get_corner(m.LEFT) + m.LEFT * 0.2,
                 color=m.BLUE,
             ),
-            m.Line(
+            ThinLine(
                 def_instance.target.get_corner(m.DL) + m.LEFT * 0.2,
                 def_instance.target.get_corner(m.UL) + m.LEFT * 0.2,
                 color=m.BLUE,

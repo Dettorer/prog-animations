@@ -1,1 +1,1 @@
-manimce
+manim
