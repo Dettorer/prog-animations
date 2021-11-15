@@ -33,3 +33,12 @@ direnv allow
 After installing manim, you can run `manim [options] ocaml.py` to render the
 animations.  For example, `manim -p ocaml.py` will render and play your choosen
 animation, `manim ocaml.py` will only render it.
+
+## Current animations
+
+- `manim ocaml.py SquareOfPred`: visualize a simple function call evaluation
+  with emphasis on the "context" of the evaluation (current name-value
+  associations).
+- `manim ocaml.py Fact`: visualize a call to a recursive factorial
+  implementation to illustrate how different calls have different contexts that
+  may be reused when going back up the call stack.
